@@ -101,90 +101,56 @@ def speak(text):
 # ---------------------
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖", layout="centered")
 
+# Welcome Screen State
+if "welcome_done" not in st.session_state:
+    st.session_state.welcome_done = False
+
+# ---------------------
 # Theme toggle
+# ---------------------
 if "theme" not in st.session_state:
     st.session_state.theme = "Dark"
 
 theme_choice = st.sidebar.radio("Choose Theme", ["Dark", "Light"])
 st.session_state.theme = theme_choice
 
-# Theme Styles
+# Apply Theme
 if st.session_state.theme == "Dark":
     st.markdown("""
         <style>
-            body, .stApp {
-                background-color: #1e1e1e;
-                color: #f0f0f0;
-            }
-            .user-bubble {
-                background: linear-gradient(135deg, #00ff99, #0066ff);
-                color: white;
-                padding: 8px 12px;
-                border-radius: 15px;
-                margin: 5px;
-                max-width: 70%;
-                float: right;
-                clear: both;
-                font-weight: 500;
-            }
-            .bot-bubble {
-                background: linear-gradient(135deg, #333333, #555555);
-                color: #f0f0f0;
-                padding: 8px 12px;
-                border-radius: 15px;
-                margin: 5px;
-                max-width: 70%;
-                float: left;
-                clear: both;
-                font-weight: 500;
-            }
-            .stButton>button, .stDownloadButton>button {
-                background: linear-gradient(90deg, #ff0080, #7928ca);
-                color: white;
-                border-radius: 12px;
-                padding: 6px 15px;
-                border: none;
-            }
+            body, .stApp { background-color: #1e1e1e; color: #f0f0f0; }
+            .user-bubble { background: linear-gradient(135deg, #00ff99, #0066ff); color: white; padding: 8px 12px; border-radius: 15px; margin: 5px; max-width: 70%; float: right; clear: both; }
+            .bot-bubble { background: linear-gradient(135deg, #333333, #555555); color: #f0f0f0; padding: 8px 12px; border-radius: 15px; margin: 5px; max-width: 70%; float: left; clear: both; }
+            .stButton>button, .stDownloadButton>button { background: linear-gradient(90deg, #ff0080, #7928ca); color: white; border-radius: 12px; padding: 6px 15px; border: none; }
             .clearfix { clear: both; }
         </style>
     """, unsafe_allow_html=True)
 else:
     st.markdown("""
         <style>
-            body, .stApp {
-                background-color: #ffffff;
-                color: #000000;
-            }
-            .user-bubble {
-                background-color: #DCF8C6;
-                padding: 8px 12px;
-                border-radius: 15px;
-                margin: 5px;
-                max-width: 70%;
-                float: right;
-                clear: both;
-            }
-            .bot-bubble {
-                background-color: #E6E6E6;
-                padding: 8px 12px;
-                border-radius: 15px;
-                margin: 5px;
-                max-width: 70%;
-                float: left;
-                clear: both;
-            }
-            .stButton>button, .stDownloadButton>button {
-                background-color: #007bff;
-                color: white;
-                border-radius: 12px;
-                padding: 6px 15px;
-                border: none;
-            }
+            body, .stApp { background-color: #ffffff; color: #000000; }
+            .user-bubble { background-color: #DCF8C6; padding: 8px 12px; border-radius: 15px; margin: 5px; max-width: 70%; float: right; clear: both; }
+            .bot-bubble { background-color: #E6E6E6; padding: 8px 12px; border-radius: 15px; margin: 5px; max-width: 70%; float: left; clear: both; }
+            .stButton>button, .stDownloadButton>button { background-color: #007bff; color: white; border-radius: 12px; padding: 6px 15px; border: none; }
             .clearfix { clear: both; }
         </style>
     """, unsafe_allow_html=True)
 
-# --- Sidebar Info ---
+# ---------------------
+# Welcome Screen
+# ---------------------
+if not st.session_state.welcome_done:
+    st.image("lpu_logo.png", width=150)
+    st.markdown("<h1 style='text-align:center; color:#ff6600;'>Welcome to Ayush's AI Chatbot</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align:center; font-size:18px;'>Powered by LPU Hackathon Project</p>", unsafe_allow_html=True)
+    if st.button("🚀 Start Chat"):
+        st.session_state.welcome_done = True
+        st.experimental_rerun()
+    st.stop()
+
+# ---------------------
+# Sidebar Info
+# ---------------------
 st.sidebar.title("ℹ Chatbot Info")
 st.sidebar.markdown("""
 *🤖 AI Chatbot*  
@@ -200,41 +166,37 @@ Lovely Professional University (LPU)
 B.Tech CSE (AI & ML) Student
 """)
 
+# ---------------------
+# Chat UI
+# ---------------------
 st.title("💬 AI Chatbot")
 
-# Initialize chat history
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# --- Buttons Row ---
 col1, col2 = st.columns(2)
 with col1:
     if st.button("🗑 Clear Chat"):
         st.session_state.history = []
         st.session_state.chat_history_ids = None
         st.rerun()
-
 with col2:
     if st.session_state.history:
         chat_text = "\n".join([f"{speaker}: {msg}" for speaker, msg in st.session_state.history])
         st.download_button("📥 Download Chat", chat_text, file_name="chat_history.txt")
 
-# User input
 user_input = st.text_input("Type here:", "")
 
-# Voice input
 audio_text = mic_recorder(start_prompt="🎤 Speak", stop_prompt="Stop", just_once=True)
 if audio_text and audio_text.strip() != "":
     user_input = audio_text.strip()
 
-# Send Button
 if st.button("Send") and user_input.strip() != "":
     reply = get_response(user_input)
     st.session_state.history.append(("You", user_input))
     st.session_state.history.append(("Bot", reply))
     speak(reply)
 
-# Display chat bubbles
 for speaker, msg in st.session_state.history:
     if speaker == "You":
         st.markdown(f"<div class='user-bubble'>{msg}</div><div class='clearfix'></div>", unsafe_allow_html=True)
