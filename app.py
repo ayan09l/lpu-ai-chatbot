@@ -66,6 +66,23 @@ def speak(text):
 # Streamlit UI
 # ---------------------
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖", layout="centered")
+
+# --- Sidebar ---
+st.sidebar.title("ℹ Chatbot Info")
+st.sidebar.markdown("""
+*🤖 AI Chatbot*  
+- Built for *LPU Hackathon*  
+- Uses *DialoGPT + TF-IDF*  
+- Voice & Text supported  
+
+*Credits:*  
+👨‍💻 Developed by Ayush Panigrahi  
+
+*University:*  
+Lovely Professional University (LPU)  
+B.Tech CSE (AI & ML) Student
+""")
+
 st.markdown("""
     <style>
         .user-bubble {
