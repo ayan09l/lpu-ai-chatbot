@@ -6,8 +6,10 @@ from sklearn.metrics.pairwise import cosine_similarity
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import os
+from gtts import gTTS
+from streamlit_mic_recorder import mic_recorder
 
-# Load data.txt for custom responses
+# Load data.txt
 if os.path.exists("data.txt"):
     with open("data.txt", "r", encoding="utf-8", errors="ignore") as f:
         raw = f.read().strip().lower()
@@ -54,14 +56,27 @@ def ai_response(user_text: str) -> str:
     st.session_state.chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
     return tokenizer.decode(st.session_state.chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True)
 
+# Text-to-speech
+def speak(text):
+    tts = gTTS(text)
+    tts.save("reply.mp3")
+    audio_file = open("reply.mp3", "rb")
+    st.audio(audio_file, format="audio/mp3")
+
 # Streamlit UI
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖")
-st.title("🤖 AI Chatbot (LPU)")
+st.title("🤖 AI Chatbot with Voice (LPU)")
 
 if "history" not in st.session_state:
     st.session_state.history = []
 
+# Text input
 user_input = st.text_input("You:", "")
+
+# Voice input
+audio_text = mic_recorder(start_prompt="🎤 Speak", stop_prompt="Stop", just_once=True)
+if audio_text and audio_text.strip() != "":
+    user_input = audio_text.strip()
 
 if st.button("Send") and user_input.strip() != "":
     if user_input.lower() == "bye":
@@ -72,6 +87,7 @@ if st.button("Send") and user_input.strip() != "":
         reply = tfidf_response(user_input) or ai_response(user_input)
     st.session_state.history.append(("You", user_input))
     st.session_state.history.append(("Bot", reply))
+    speak(reply)
 
 for speaker, msg in st.session_state.history:
     st.markdown(f"{speaker}:** {msg}")
