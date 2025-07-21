@@ -97,58 +97,94 @@ def speak(text):
     st.audio(audio_file, format="audio/mp3")
 
 # ---------------------
-# Streamlit Dark Mode UI
+# Streamlit UI
 # ---------------------
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖", layout="centered")
 
-# Dark Theme Styling
-st.markdown("""
-    <style>
-        body, .stApp {
-            background-color: #1e1e1e;
-            color: #f0f0f0;
-        }
-        .user-bubble {
-            background: linear-gradient(135deg, #00ff99, #0066ff);
-            color: white;
-            padding: 8px 12px;
-            border-radius: 15px;
-            margin: 5px;
-            max-width: 70%;
-            float: right;
-            clear: both;
-            font-weight: 500;
-        }
-        .bot-bubble {
-            background: linear-gradient(135deg, #333333, #555555);
-            color: #f0f0f0;
-            padding: 8px 12px;
-            border-radius: 15px;
-            margin: 5px;
-            max-width: 70%;
-            float: left;
-            clear: both;
-            font-weight: 500;
-        }
-        .stButton>button {
-            background: linear-gradient(90deg, #ff0080, #7928ca);
-            color: white;
-            border-radius: 12px;
-            padding: 6px 15px;
-            border: none;
-        }
-        .stDownloadButton>button {
-            background: linear-gradient(90deg, #00f260, #0575e6);
-            color: white;
-            border-radius: 12px;
-            padding: 6px 15px;
-            border: none;
-        }
-        .clearfix { clear: both; }
-    </style>
-""", unsafe_allow_html=True)
+# Theme toggle
+if "theme" not in st.session_state:
+    st.session_state.theme = "Dark"
 
-# --- Sidebar ---
+theme_choice = st.sidebar.radio("Choose Theme", ["Dark", "Light"])
+st.session_state.theme = theme_choice
+
+# Theme Styles
+if st.session_state.theme == "Dark":
+    st.markdown("""
+        <style>
+            body, .stApp {
+                background-color: #1e1e1e;
+                color: #f0f0f0;
+            }
+            .user-bubble {
+                background: linear-gradient(135deg, #00ff99, #0066ff);
+                color: white;
+                padding: 8px 12px;
+                border-radius: 15px;
+                margin: 5px;
+                max-width: 70%;
+                float: right;
+                clear: both;
+                font-weight: 500;
+            }
+            .bot-bubble {
+                background: linear-gradient(135deg, #333333, #555555);
+                color: #f0f0f0;
+                padding: 8px 12px;
+                border-radius: 15px;
+                margin: 5px;
+                max-width: 70%;
+                float: left;
+                clear: both;
+                font-weight: 500;
+            }
+            .stButton>button, .stDownloadButton>button {
+                background: linear-gradient(90deg, #ff0080, #7928ca);
+                color: white;
+                border-radius: 12px;
+                padding: 6px 15px;
+                border: none;
+            }
+            .clearfix { clear: both; }
+        </style>
+    """, unsafe_allow_html=True)
+else:
+    st.markdown("""
+        <style>
+            body, .stApp {
+                background-color: #ffffff;
+                color: #000000;
+            }
+            .user-bubble {
+                background-color: #DCF8C6;
+                padding: 8px 12px;
+                border-radius: 15px;
+                margin: 5px;
+                max-width: 70%;
+                float: right;
+                clear: both;
+            }
+            .bot-bubble {
+                background-color: #E6E6E6;
+                padding: 8px 12px;
+                border-radius: 15px;
+                margin: 5px;
+                max-width: 70%;
+                float: left;
+                clear: both;
+            }
+            .stButton>button, .stDownloadButton>button {
+                background-color: #007bff;
+                color: white;
+                border-radius: 12px;
+                padding: 6px 15px;
+                border: none;
+            }
+            .clearfix { clear: both; }
+        </style>
+    """, unsafe_allow_html=True)
+
+# --- Sidebar Info ---
 st.sidebar.title("ℹ Chatbot Info")
 st.sidebar.markdown("""
 *🤖 AI Chatbot*  
@@ -164,7 +200,7 @@ Lovely Professional University (LPU)
 B.Tech CSE (AI & ML) Student
 """)
 
-st.title("💬 AI Chatbot (Dark Mode)")
+st.title("💬 AI Chatbot")
 
 # Initialize chat history
 if "history" not in st.session_state:
