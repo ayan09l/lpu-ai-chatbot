@@ -49,26 +49,22 @@ def tfidf_match(user_text, sentences):
     vec = TfidfVectorizer(stop_words="english")
     tfidf = vec.fit_transform(corpus)
     sims = cosine_similarity(tfidf[-1], tfidf[:-1]).flatten()
-    if sims.max() < 0.2:  # threshold for relevance
+    if sims.max() < 0.2:
         return None
     return sentences[sims.argmax()]
 
 def get_response(user_text):
-    # Priority 1: Greeting
     if is_greeting(user_text):
         return random.choice(GREETING_RESPONSES)
 
-    # Priority 2: LPU Knowledge
     lpu_answer = tfidf_match(user_text, lpu_sentences)
     if lpu_answer:
         return lpu_answer.capitalize()
 
-    # Priority 3: General Data
     general_answer = tfidf_match(user_text, sent_tokens)
     if general_answer:
         return general_answer.capitalize()
 
-    # Priority 4: AI Model
     return ai_response(user_text)
 
 # ---------------------
@@ -101,9 +97,56 @@ def speak(text):
     st.audio(audio_file, format="audio/mp3")
 
 # ---------------------
-# Streamlit UI
+# Streamlit Dark Mode UI
 # ---------------------
 st.set_page_config(page_title="AI Chatbot", page_icon="🤖", layout="centered")
+
+# Dark Theme Styling
+st.markdown("""
+    <style>
+        body, .stApp {
+            background-color: #1e1e1e;
+            color: #f0f0f0;
+        }
+        .user-bubble {
+            background: linear-gradient(135deg, #00ff99, #0066ff);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin: 5px;
+            max-width: 70%;
+            float: right;
+            clear: both;
+            font-weight: 500;
+        }
+        .bot-bubble {
+            background: linear-gradient(135deg, #333333, #555555);
+            color: #f0f0f0;
+            padding: 8px 12px;
+            border-radius: 15px;
+            margin: 5px;
+            max-width: 70%;
+            float: left;
+            clear: both;
+            font-weight: 500;
+        }
+        .stButton>button {
+            background: linear-gradient(90deg, #ff0080, #7928ca);
+            color: white;
+            border-radius: 12px;
+            padding: 6px 15px;
+            border: none;
+        }
+        .stDownloadButton>button {
+            background: linear-gradient(90deg, #00f260, #0575e6);
+            color: white;
+            border-radius: 12px;
+            padding: 6px 15px;
+            border: none;
+        }
+        .clearfix { clear: both; }
+    </style>
+""", unsafe_allow_html=True)
 
 # --- Sidebar ---
 st.sidebar.title("ℹ Chatbot Info")
@@ -121,31 +164,7 @@ Lovely Professional University (LPU)
 B.Tech CSE (AI & ML) Student
 """)
 
-st.markdown("""
-    <style>
-        .user-bubble {
-            background-color: #DCF8C6;
-            padding: 8px 12px;
-            border-radius: 15px;
-            margin: 5px;
-            max-width: 70%;
-            float: right;
-            clear: both;
-        }
-        .bot-bubble {
-            background-color: #E6E6E6;
-            padding: 8px 12px;
-            border-radius: 15px;
-            margin: 5px;
-            max-width: 70%;
-            float: left;
-            clear: both;
-        }
-        .clearfix { clear: both; }
-    </style>
-""", unsafe_allow_html=True)
-
-st.title("🤖 AI Chatbot (Voice + Text)")
+st.title("💬 AI Chatbot (Dark Mode)")
 
 # Initialize chat history
 if "history" not in st.session_state:
