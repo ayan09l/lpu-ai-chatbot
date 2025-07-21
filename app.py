@@ -113,11 +113,18 @@ st.title("🤖 AI Chatbot (Voice + Text)")
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# --- Clear Chat Button ---
-if st.button("🗑 Clear Chat"):
-    st.session_state.history = []
-    st.session_state.chat_history_ids = None
-    st.rerun()
+# --- Buttons Row ---
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("🗑 Clear Chat"):
+        st.session_state.history = []
+        st.session_state.chat_history_ids = None
+        st.rerun()
+
+with col2:
+    if st.session_state.history:
+        chat_text = "\n".join([f"{speaker}: {msg}" for speaker, msg in st.session_state.history])
+        st.download_button("📥 Download Chat", chat_text, file_name="chat_history.txt")
 
 # User input
 user_input = st.text_input("Type here:", "")
