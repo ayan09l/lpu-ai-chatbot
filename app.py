@@ -10,7 +10,20 @@ from gtts import gTTS
 from streamlit_mic_recorder import mic_recorder
 
 # ---------------------
-# Data Loading
+# Load LPU Knowledge Base
+# ---------------------
+def load_knowledge_base():
+    if os.path.exists("lpu_data.txt"):
+        with open("lpu_data.txt", "r", encoding="utf-8", errors="ignore") as f:
+            raw = f.read().strip().lower()
+    else:
+        raw = "LPU is a private university in Punjab, India."
+    return [s.strip() for s in re.split(r'[.!?]\s*', raw) if s.strip()]
+
+lpu_sentences = load_knowledge_base()
+
+# ---------------------
+# Load General Data
 # ---------------------
 if os.path.exists("data.txt"):
     with open("data.txt", "r", encoding="utf-8", errors="ignore") as f:
@@ -27,18 +40,40 @@ def is_greeting(text: str) -> bool:
     words = re.findall(r"\w+", text.lower())
     return any(w in GREETING_INPUTS for w in words)
 
-def tfidf_response(user_text: str) -> str:
-    if not sent_tokens:
-        return None
+# ---------------------
+# TF-IDF based Response
+# ---------------------
+def tfidf_match(user_text, sentences):
     user_text = user_text.lower().strip()
-    corpus = sent_tokens + [user_text]
+    corpus = sentences + [user_text]
     vec = TfidfVectorizer(stop_words="english")
     tfidf = vec.fit_transform(corpus)
     sims = cosine_similarity(tfidf[-1], tfidf[:-1]).flatten()
-    if sims.max() < 0.1:
+    if sims.max() < 0.2:  # threshold for relevance
         return None
-    return sent_tokens[sims.argmax()]
+    return sentences[sims.argmax()]
 
+def get_response(user_text):
+    # Priority 1: Greeting
+    if is_greeting(user_text):
+        return random.choice(GREETING_RESPONSES)
+
+    # Priority 2: LPU Knowledge
+    lpu_answer = tfidf_match(user_text, lpu_sentences)
+    if lpu_answer:
+        return lpu_answer.capitalize()
+
+    # Priority 3: General Data
+    general_answer = tfidf_match(user_text, sent_tokens)
+    if general_answer:
+        return general_answer.capitalize()
+
+    # Priority 4: AI Model
+    return ai_response(user_text)
+
+# ---------------------
+# DialoGPT Model
+# ---------------------
 @st.cache_resource
 def load_model():
     tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-small")
@@ -56,6 +91,9 @@ def ai_response(user_text: str) -> str:
     st.session_state.chat_history_ids = model.generate(bot_input_ids, max_length=1000, pad_token_id=tokenizer.eos_token_id)
     return tokenizer.decode(st.session_state.chat_history_ids[:, bot_input_ids.shape[-1]:][0], skip_special_tokens=True)
 
+# ---------------------
+# Voice Response
+# ---------------------
 def speak(text):
     tts = gTTS(text)
     tts.save("reply.mp3")
@@ -71,7 +109,7 @@ st.set_page_config(page_title="AI Chatbot", page_icon="🤖", layout="centered")
 st.sidebar.title("ℹ Chatbot Info")
 st.sidebar.markdown("""
 *🤖 AI Chatbot*  
-- Built for *LPU Hackathon*  
+- Specialized in *LPU Information*  
 - Uses *DialoGPT + TF-IDF*  
 - Voice & Text supported  
 
@@ -136,12 +174,7 @@ if audio_text and audio_text.strip() != "":
 
 # Send Button
 if st.button("Send") and user_input.strip() != "":
-    if user_input.lower() == "bye":
-        reply = "Bye! Take care."
-    elif is_greeting(user_input):
-        reply = random.choice(GREETING_RESPONSES)
-    else:
-        reply = tfidf_response(user_input) or ai_response(user_input)
+    reply = get_response(user_input)
     st.session_state.history.append(("You", user_input))
     st.session_state.history.append(("Bot", reply))
     speak(reply)
