@@ -3,3 +3,4 @@ transformers
 torch
 gtts
 streamlit-mic-recorder
+scikit-learn
