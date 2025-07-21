@@ -92,10 +92,17 @@ st.markdown("""
 
 st.title("🤖 AI Chatbot (Voice + Text)")
 
+# Initialize chat history
 if "history" not in st.session_state:
     st.session_state.history = []
 
-# Input
+# --- Clear Chat Button ---
+if st.button("🗑 Clear Chat"):
+    st.session_state.history = []
+    st.session_state.chat_history_ids = None
+    st.rerun()
+
+# User input
 user_input = st.text_input("Type here:", "")
 
 # Voice input
